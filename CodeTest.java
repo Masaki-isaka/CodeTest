@@ -27,7 +27,7 @@ public class CodeTest {
     public static final String SHA_256 = "SHA-256";
 
     /* インターリービング処理を行うページ件数。要件が変わった場合この値を変えて下さい */
-    public static final Integer interleavingPageCount = 2;
+    public static final Integer interleavingPageCount = 1;
 
     public static final Integer MAX_PAGE = 100;
 
@@ -76,7 +76,6 @@ public class CodeTest {
      * @return インターリービング処理を行ったリスト
      */
     private List<JobPost> computeBalancedInterleaving(Integer userId, Integer totalNeeded) {
-
         long seed = this.createSeedValue(userId);
 
         // 乱数生成（このシード値からは常に同じランダム列が出る）
@@ -98,7 +97,8 @@ public class CodeTest {
 
         // 生成されるランキングがインターリービングに必要なアイテム数に達するまで処理を行う
         while (map.size() < totalNeeded
-                && (oldAlgorithmPointer < oldAlgorithmList.size() || newAlgorithmPointer < newAlgorithmList.size())) {
+                && (oldAlgorithmPointer < oldAlgorithmList.size()
+                        || newAlgorithmPointer < newAlgorithmList.size())) {
             if (newAlgorithmPointer > oldAlgorithmPointer
                     || (fromOld && newAlgorithmPointer == oldAlgorithmPointer)) {
                 if (!map.containsKey(oldAlgorithmList.get(oldAlgorithmPointer))) {
