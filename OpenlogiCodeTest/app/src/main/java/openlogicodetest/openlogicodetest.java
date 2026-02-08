@@ -21,19 +21,32 @@ public class openlogicodetest {
     /** 訪問済みセット */
     private static Set<String> visited = new HashSet<>();
 
-    // 親子関係を保持するMap(親・子のリスト)
+    /** 親子関係を保持するMap(親・子のリスト) */
     private static Map<String, List<String>> treeMap = new LinkedHashMap<>();
 
+    /** 文字列の深さを保持するMap(Key:文字, value:深さ(0始まり)) */
     private static Map<String, Integer> treeDepthMap = new LinkedHashMap<>();
 
-    /** ログ出力 */
+    /** ログ出力のインスタンス化 */
     private static final Logger logger = Logger.getLogger(openlogicodetest.class.getName());
 
     /** $ */
-    private static final String SUFFIX_$ = "$";
+    private static final String DOLLAR_SIGN = "$";
 
     /** @ */
     private static final String SUFFIX_AT = "@";
+
+    /** 語 */
+    private static final String GO = "語";
+
+    /** 学 */
+    private static final String GAKU = "学";
+
+    /** ハイフン */
+    private static final String HYPTHEN = "- ";
+
+    /** 空白 */
+    private static final String BLANK = "";
 
     public static void main(String[] args) {
 
@@ -63,16 +76,17 @@ public class openlogicodetest {
      */
     public static void searchAsBfs(String startUrl, String startKeyword, int depth) {
 
-        // URL,キーワードをキューとして保持
+        // URL,キーワード,深さ(0始まり)をキューとして保持
         Queue<Object[]> queue = new LinkedList<>();
         queue.add(new Object[] { startUrl, startKeyword, depth });
 
         // 一度訪問したキーワードを保持
         visited.add(startKeyword);
+
         treeDepthMap.put(startKeyword, depth);
 
         // 探索ロジック
-        // 幅優先探索で実装する(要件No.4)
+        // 幅優先探索として実装(要件No.4)
         // 最大20回までの探索(要件No.2)
         while (!queue.isEmpty() && searchCount.get() < MAX_SEARCH) {
             Object[] current = queue.poll();
@@ -107,9 +121,8 @@ public class openlogicodetest {
                             continue;
                         }
 
-                        // 語・学があった場合は末尾に$を付与(要件No.5)
-                        boolean searchStopFlg = linkText.endsWith("語") || linkText.endsWith("学");
-                        if (searchStopFlg) {
+                        // 語・学があった場合は探索を中止する(要件No.5)
+                        if (isFixedText(linkText)) {
                             visited.add(linkText);
                             children.add(linkText);
                             continue;
@@ -143,22 +156,24 @@ public class openlogicodetest {
      */
     public static void printTree(String keyword, int depth, Set<String> displayed) {
         String indent = "    ".repeat(depth);
-        String cleanKey = keyword.replaceAll("[@$]+$", "");
+        String cleanKey = keyword.replaceAll("[@$]+$", BLANK);
 
-        if (cleanKey.endsWith("語") || cleanKey.endsWith("学")) {
-            System.out.println(indent + "- " + cleanKey + "$");
+        // 語・学があった場合は$を付与する(要件No.5)
+        if (isFixedText(cleanKey)) {
+            System.out.println(indent + HYPTHEN + cleanKey + DOLLAR_SIGN);
             displayed.add(cleanKey); // 既に出現したことにはする
             return; // 探索はしないのでここで終了
         }
 
         // 表示済みなら@を付与する(要件No.1)
         if (displayed.contains(cleanKey)) {
-            System.out.println(indent + "- " + cleanKey + "@");
+            System.out.println(indent + HYPTHEN + cleanKey + SUFFIX_AT);
             return;
         }
 
+        // 同じ文字があった場合上位階層を優先して出力(要件No.1)
         if (depth > treeDepthMap.get(cleanKey)) {
-            System.out.println(indent + "- " + cleanKey + "@");
+            System.out.println(indent + HYPTHEN + cleanKey + SUFFIX_AT);
             return;
         }
 
@@ -166,10 +181,10 @@ public class openlogicodetest {
 
         // 未探索のキーワード(=最大探索回数に漏れたもの)には$を付与(要件No.2)
         boolean isExplored = treeMap.containsKey(cleanKey);
-        String suffix = isExplored ? "" : "$";
+        String suffix = isExplored ? BLANK : DOLLAR_SIGN;
 
         // 取得したキーワードは全て表示(要件No.3)
-        System.out.println(indent + "- " + keyword + suffix);
+        System.out.println(indent + HYPTHEN + keyword + suffix);
 
         // 子要素がいれば再帰的に表示
         List<String> children = treeMap.get(cleanKey);
@@ -178,5 +193,19 @@ public class openlogicodetest {
                 printTree(child, depth + 1, displayed);
             }
         }
+    }
+
+    /**
+     * 文字の最後に固定の文字が含まれているかのチェックを行います
+     * 
+     * @param text
+     * @return 文字の最後に固定の文字が含まれていた場合 true,そうでなければfalse
+     * 
+     */
+    private static boolean isFixedText(String text) {
+        if (text.endsWith(GO) || text.endsWith(GAKU)) {
+            return true;
+        }
+        return false;
     }
 }
