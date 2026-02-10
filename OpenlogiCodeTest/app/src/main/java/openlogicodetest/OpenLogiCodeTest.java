@@ -7,25 +7,13 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class OpenLogiCodeTest {
 
-    /** 開始URL */
-    private static final String START_URL = "https://ja.wikipedia.org/wiki/%E3%82%A8%E3%83%AA%E3%82%A6%E3%83%89%E3%83%BB%E3%82%AD%E3%83%97%E3%83%81%E3%83%A7%E3%82%B2";
-
-    /** 開始キーワード */
-    private static final String START_KEY_WORD = "エリウド・キプチョゲ";
-
     /** 最大探索回数(変更する場合はこの値を変えて下さい) */
     private static final int MAX_SEARCH = 20;
-
-    private static final AtomicInteger searchCount = new AtomicInteger(0);
-
-    /** 訪問済みセット */
-    private static Set<String> visited = new HashSet<>();
 
     /** 親子関係を保持するMap(親・子のリスト) */
     private static Map<String, List<String>> treeMap = new LinkedHashMap<>();
@@ -55,16 +43,6 @@ public class OpenLogiCodeTest {
     private static final String BLANK = "";
 
     public static void main(String[] args) {
-
-        long startTime = System.currentTimeMillis();
-
-        // 幅優先的に探索する
-        searchAsBfs(START_URL, START_KEY_WORD, 0);
-
-        // 探索したものを深さ優先的に出力する
-        printTreeAsDfs(START_KEY_WORD, 0, new HashSet<>());
-
-        System.out.println("\nExecution Time: " + (System.currentTimeMillis() - startTime) + "ms");
     }
 
     /**
@@ -74,7 +52,12 @@ public class OpenLogiCodeTest {
      * @param startKeyword スタートするキーワード
      * @throws InterruptedException
      */
-    public static void searchAsBfs(String startUrl, String startKeyword, int depth) {
+    public void searchAsBfs(String startUrl, String startKeyword, int depth) {
+
+        // 探索Count
+        int searchCount = 0;
+        // 訪問済みセット
+        Set<String> visited = new HashSet<>();
 
         // URL,キーワード,深さ(0始まり)をキューとして保持
         Queue<Object[]> queue = new LinkedList<>();
@@ -88,12 +71,13 @@ public class OpenLogiCodeTest {
         // 探索ロジック
         // 幅優先的に探索(要件No.4)
         // 最大20回までの探索(要件No.2)
-        while (!queue.isEmpty() && searchCount.get() < MAX_SEARCH) {
+        while (!queue.isEmpty() && searchCount < MAX_SEARCH) {
             Object[] current = queue.poll();
             String url = (String) current[0];
             String keyword = (String) current[1];
             int currentDepth = (int) current[2];
-            searchCount.incrementAndGet();
+            searchCount++;
+            System.out.println("探索開始: " + keyword);
 
             List<String> children = new ArrayList<>();
             try {
@@ -157,7 +141,7 @@ public class OpenLogiCodeTest {
      * @param depth     現在の深さ
      * @param displayed 表示したキーワードの集合
      */
-    public static void printTreeAsDfs(String keyword, int depth, Set<String> displayed) {
+    public void printTreeAsDfs(String keyword, int depth, Set<String> displayed) {
         String indent = "    ".repeat(depth);
 
         // 語・学があった場合は$を付与する(要件No.5)
