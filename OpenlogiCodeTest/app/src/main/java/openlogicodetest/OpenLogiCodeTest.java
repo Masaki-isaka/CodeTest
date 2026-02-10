@@ -14,10 +14,10 @@ import java.util.logging.Logger;
 public class OpenLogiCodeTest {
 
     /** 開始URL */
-    private static final String START_URL = "https://ja.wikipedia.org/wiki/%E5%A4%A7%E8%BF%AB%E5%82%91";
+    private static final String START_URL = "https://ja.wikipedia.org/wiki/%E3%82%A8%E3%83%AA%E3%82%A6%E3%83%89%E3%83%BB%E3%82%AD%E3%83%97%E3%83%81%E3%83%A7%E3%82%B2";
 
     /** 開始キーワード */
-    private static final String START_KEY_WORD = "大迫傑";
+    private static final String START_KEY_WORD = "エリウド・キプチョゲ";
 
     /** 最大探索回数(変更する場合はこの値を変えて下さい) */
     private static final int MAX_SEARCH = 20;
@@ -136,10 +136,14 @@ public class OpenLogiCodeTest {
                         queue.add(new Object[] { link.absUrl("href"), linkText, nextDepth });
                     }
                 }
-            } catch (InterruptedException | IOException e) {
-                // 割り込みが発生した場合は処理を中断
+            } catch (InterruptedException e) {
+                // 割り込みが発生した場合は処理を中断し、出力する
                 logger.log(Level.SEVERE, "割り込みが発生しました。探索を中断します。", e);
                 Thread.currentThread().interrupt();
+                return;
+            } catch (IOException e) {
+                // 通信エラーが発生した場合は処理を中断し、出力する
+                logger.log(Level.SEVERE, "通信エラーが発生しました。探索を中断します。", e);
                 return;
             }
             treeMap.put(keyword, children);
@@ -169,7 +173,7 @@ public class OpenLogiCodeTest {
             return;
         }
 
-        // 同じ文字があった場合上位階層を優先して出力(要件No.1)
+        // 同じ文字があった場合上位階層を優先して出力(要件No.1,4)
         if (depth > treeDepthMap.get(keyword)) {
             System.out.println(indent + HYPTHEN + keyword + SUFFIX_AT);
             return;
